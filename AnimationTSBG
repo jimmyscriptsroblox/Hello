@@ -1,0 +1,154 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local hotbar = playerGui:FindFirstChild("Hotbar")
+local backpack = hotbar:FindFirstChild("Backpack")
+local hotbarFrame = backpack:FindFirstChild("Hotbar")
+
+local function setHotbarText(buttonIndex, text)
+    local baseButton = hotbarFrame:FindFirstChild(tostring(buttonIndex)).Base
+    local toolName = baseButton:FindFirstChild("ToolName")
+    if toolName then
+        toolName.Text = text
+    end
+end
+
+setHotbarText(1, "Kicking Sweep")
+setHotbarText(2, "Brutal Consecutive Beatdown")
+setHotbarText(3, "Brutal Punch")
+setHotbarText(4, "Fearless Stomp")
+
+local function updateMagicHealthText()
+    local screenGui = playerGui:FindFirstChild("ScreenGui")
+    if screenGui then
+        local magicHealthFrame = screenGui:FindFirstChild("MagicHealth")
+        if magicHealthFrame then
+            local textLabel = magicHealthFrame:FindFirstChild("TextLabel")
+            if textLabel then
+                textLabel.Text = "Awakening coming soon..."
+            end
+        end
+    end
+end
+
+playerGui.DescendantAdded:Connect(updateMagicHealthText)
+updateMagicHealthText()
+
+local animationData 
+    [10468665991] = { newId = 14721837245, startTime = 0, speed = 1.2, stopDelay = 1.1 }, -- Kicking Sweep
+    [10466974800] = { newId = 15943915877, startTime = 0, speed = 1.6 }, --  Brutal Consecutive Beatdown
+    [10471336737] = { newId = 13501296372, startTime = 0, speed = 1 }, -- Brutal punch
+    [12510170988] = { newId = 18464372850, startTime = 2, speed = 1.15 }, -- Fearless Stomp
+    [11343318134] = { newId = 12983333733, startTime = 2, speed = 0.5 },
+    [15955393872] = { newId = 15943915877, startTime = 0.05, speed = 1 },
+    [12983333733] = { newId = 13073745835, startTime = 0, speed = 0.1 }, -- Reversal red
+    [12447707844] = { newId = 17861834531, startTime = 0, speed = 1, stopDelay = 2 }, -- Awakening animation
+    [10479335397] = { newId = 14048285180, startTime = 0, speed = 1, stopDelay = 0.8 }, -- Dash animation
+    [10503381238] = { newId = 14900168720, startTime = 1.3, speed = 1 }, -- Uppercut animation
+    [10470104242] = { newId = 16431491215, startTime = 0, speed = 2 }, -- Downslam animation
+}
+
+local animationIdsToStop = {
+    [10469493270] = true,
+    [10469630950] = true,
+    [10469639222] = true,
+    [10469643643] = true,
+}
+
+local replacementAnimations = {
+    ["10469643643"] = "rbxassetid://17889290569",
+    ["10469639222"] = "rbxassetid://17889471098",
+    ["10469630950"] = "rbxassetid://17889461810",
+    ["10469493270"] = "rbxassetid://17889458563",
+}
+
+local queue = {}
+local isAnimating = false
+
+local function playReplacementAnimation(animationId)
+    if isAnimating then
+        table.insert(queue, animationId)
+        return
+    end
+
+    isAnimating = true
+    local replacementAnimationId = replacementAnimations[tostring(animationId)]
+    if replacementAnimationId then
+        local animAnim = Instance.new("Animation")
+        animAnim.AnimationId = replacementAnimationId
+        local anim = humanoid:LoadAnimation(animAnim)
+        anim:Play()
+
+        anim.Stopped:Connect(function()
+            isAnimating = false
+            if #queue > 0 then
+                local nextAnimationId = table.remove(queue, 1)
+                playReplacementAnimation(nextAnimationId)
+            end
+        end)
+    else
+        isAnimating = false
+    end
+end
+
+local function stopSpecificAnimations()
+    for _, track in ipairs(humanoid:GetPlayingAnimationTracks()) do
+        local animationId = tonumber(track.Animation.AnimationId:match("%d+"))
+        if animationIdsToStop[animationId] then
+            track:Stop()
+        end
+    end
+end
+
+local function onAnimationPlayed(animationTrack)
+    local animationId = tonumber(animationTrack.Animation.AnimationId:match("%d+"))
+    if animationIdsToStop[animationId] then
+        stopSpecificAnimations()
+        animationTrack:Stop()
+        playReplacementAnimation(animationId)
+    else
+        local data = animationData[animationId]
+        if data then
+            for _, animTrack in pairs(humanoid:GetPlayingAnimationTracks()) do
+                animTrack:Stop()
+            end
+            local animAnim = Instance.new("Animation")
+            animAnim.AnimationId = "rbxassetid://" .. data.newId
+            local anim = humanoid:LoadAnimation(animAnim)
+            anim:Play()
+            anim:AdjustSpeed(0)
+            anim.TimePosition = data.startTime
+            anim:AdjustSpeed(data.speed)
+            if data.stopDelay then
+                delay(data.stopDelay, function()
+                    anim:Stop()
+                end)
+            end
+        end
+    end
+end
+
+humanoid.AnimationPlayed:Connect(onAnimationPlayed)
+
+local function onBodyVelocityAdded(bodyVelocity)
+    if bodyVelocity:IsA("BodyVelocity") then
+        bodyVelocity.Velocity = Vector3.new(bodyVelocity.Velocity.X, 0, bodyVelocity.Velocity.Z)
+    end
+end
+
+character.DescendantAdded:Connect(onBodyVelocityAdded)
+
+for _, descendant in pairs(character:GetDescendants()) do
+    onBodyVelocityAdded(descendant)
+end
+
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoid = character:WaitForChild("Humanoid")
+    character.DescendantAdded:Connect(onBodyVelocityAdded)
+    for _, descendant in pairs(character:GetDescendants()) do
+        onBodyVelocityAdded(descendant)
+    end
+end)
