@@ -8,8 +8,8 @@ local backpack = hotbar:FindFirstChild("Backpack")
 local hotbarFrame = backpack:FindFirstChild("Hotbar")
 
 local function setHotbarText(buttonIndex, text)
-    local baseButton = hotbarFrame:FindFirstChild(tostring(buttonIndex)).Base
-    local toolName = baseButton:FindFirstChild("ToolName")
+    local baseButton = hotbarFrame:FindFirstChild(tostring(buttonIndex)) and hotbarFrame:FindFirstChild(tostring(buttonIndex)).Base
+    local toolName = baseButton and baseButton:FindFirstChild("ToolName")
     if toolName then
         toolName.Text = text
     end
@@ -22,32 +22,28 @@ setHotbarText(4, "Fearless Stomp")
 
 local function updateMagicHealthText()
     local screenGui = playerGui:FindFirstChild("ScreenGui")
-    if screenGui then
-        local magicHealthFrame = screenGui:FindFirstChild("MagicHealth")
-        if magicHealthFrame then
-            local textLabel = magicHealthFrame:FindFirstChild("TextLabel")
-            if textLabel then
-                textLabel.Text = "Awakening coming soon..."
-            end
-        end
+    local magicHealthFrame = screenGui and screenGui:FindFirstChild("MagicHealth")
+    local textLabel = magicHealthFrame and magicHealthFrame:FindFirstChild("TextLabel")
+    if textLabel then
+        textLabel.Text = "Awakening coming soon..."
     end
 end
 
 playerGui.DescendantAdded:Connect(updateMagicHealthText)
 updateMagicHealthText()
 
-local animationData 
-    [10468665991] = { newId = 14721837245, startTime = 0, speed = 1.2, stopDelay = 1.1 }, -- Kicking Sweep
-    [10466974800] = { newId = 15943915877, startTime = 0, speed = 1.6 }, --  Brutal Consecutive Beatdown
-    [10471336737] = { newId = 13501296372, startTime = 0, speed = 1 }, -- Brutal punch
-    [12510170988] = { newId = 18464372850, startTime = 2, speed = 1.15 }, -- Fearless Stomp
+local animationData = {
+    [10468665991] = { newId = 14721837245, startTime = 0, speed = 1.2, stopDelay = 1.1 },
+    [10466974800] = { newId = 15943915877, startTime = 0, speed = 1.6 },
+    [10471336737] = { newId = 13501296372, startTime = 0, speed = 1 },
+    [12510170988] = { newId = 18464372850, startTime = 2, speed = 1.15 },
     [11343318134] = { newId = 12983333733, startTime = 2, speed = 0.5 },
     [15955393872] = { newId = 15943915877, startTime = 0.05, speed = 1 },
-    [12983333733] = { newId = 13073745835, startTime = 0, speed = 0.1 }, -- Reversal red
-    [12447707844] = { newId = 17861834531, startTime = 0, speed = 1, stopDelay = 2 }, -- Awakening animation
-    [10479335397] = { newId = 14048285180, startTime = 0, speed = 1, stopDelay = 0.8 }, -- Dash animation
-    [10503381238] = { newId = 14900168720, startTime = 1.3, speed = 1 }, -- Uppercut animation
-    [10470104242] = { newId = 16431491215, startTime = 0, speed = 2 }, -- Downslam animation
+    [12983333733] = { newId = 13073745835, startTime = 0, speed = 0.1 },
+    [12447707844] = { newId = 17861834531, startTime = 0, speed = 1, stopDelay = 2 },
+    [10479335397] = { newId = 14048285180, startTime = 0, speed = 1, stopDelay = 0.8 },
+    [10503381238] = { newId = 14900168720, startTime = 1.3, speed = 1 },
+    [10470104242] = { newId = 16431491215, startTime = 0, speed = 2 },
 }
 
 local animationIdsToStop = {
