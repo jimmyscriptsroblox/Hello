@@ -1,4 +1,5 @@
 -- Hello if you're seeing this, i recommend using the loadstring beacuse i am going to update this script, and if you have any problems using this script comment the issue youre issuing in my youtube channel: Jimmy Scripts
+-- loadstring(game:HttpGet("https://raw.githubusercontent.com/jimmyscriptsroblox/Hello/main/BotScriptForTSBG"))()
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Thanks for using :D",
