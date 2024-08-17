@@ -1,0 +1,157 @@
+-- Hello if you're seeing this, i recommend using the loadstring beacuse i am going to update this script, and if you have any problems using this script comment the issue youre issuing in my youtube channel: Jimmy Scripts
+
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "Thanks for using :D",
+    Text = "Made by Jimmy Scripts",
+    Duration = 15,
+    Icon = "rbxassetid://18983197158"
+})
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 300, 0, 200)
+mainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+mainFrame.BackgroundColor3 = Color3.fromRGB(51, 51, 51)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+mainFrame.Draggable = true
+mainFrame.Active = true
+mainFrame.Selectable = true
+
+local function createButton(text, position, size, color)
+    local button = Instance.new("TextButton")
+    button.Text = text
+    button.Size = size
+    button.Position = position
+    button.BackgroundColor3 = color
+    button.BorderSizePixel = 0
+    button.Parent = mainFrame
+    return button
+end
+
+local minimizeButton = createButton("-", UDim2.new(1, -110, 0, 0), UDim2.new(0, 50, 0, 25), Color3.fromRGB(204, 204, 204))
+local closeButton = createButton("X", UDim2.new(1, -55, 0, 0), UDim2.new(0, 50, 0, 25), Color3.fromRGB(204, 51, 51))
+local botModeButton = createButton("Bot (Execute nameless admin first)", UDim2.new(0.5, -100, 0.5, -75), UDim2.new(0, 200, 0, 50), Color3.fromRGB(153, 153, 153))
+local executeAdminButton = createButton("Execute nameless admin", UDim2.new(0.5, -100, 0.5, 0), UDim2.new(0, 200, 0, 50), Color3.fromRGB(153, 153, 153))
+
+local configButton = createButton("⚙️", UDim2.new(0, 0, 0, 0), UDim2.new(0, 30, 0, 30), Color3.fromRGB(153, 153, 153))
+
+local configFrame = Instance.new("Frame")
+configFrame.Size = UDim2.new(0, 200, 0, 200)
+configFrame.Position = UDim2.new(0, -200, 0.5, -100)
+configFrame.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+configFrame.BorderSizePixel = 0
+configFrame.Visible = false
+configFrame.Parent = screenGui
+
+local function createToggle(text, position, state)
+    local toggle = Instance.new("TextButton")
+    toggle.Text = text .. (state and " ✔" or " ✘")
+    toggle.Size = UDim2.new(1, 0, 0, 50)
+    toggle.Position = position
+    toggle.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    toggle.BorderSizePixel = 0
+    toggle.Parent = configFrame
+    return toggle
+end
+
+local infiniteYieldToggle = createToggle("Infinite yield (alt)", UDim2.new(0, 0, 0, 0), false)
+local prefixToggle = createToggle("Prefix ':'", UDim2.new(0, 0, 0, 50), false)
+
+local isMinimized = false
+minimizeButton.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        for _, child in ipairs(mainFrame:GetChildren()) do
+            if child ~= minimizeButton then
+                child.Visible = false
+            end
+        end
+        mainFrame:TweenSize(UDim2.new(0, 50, 0, 25), "Out", "Sine", 0.3, true)
+        minimizeButton.Text = "+"
+    else
+        mainFrame:TweenSize(UDim2.new(0, 300, 0, 200), "Out", "Sine", 0.3, true, function()
+            for _, child in ipairs(mainFrame:GetChildren()) do
+                child.Visible = true
+            end
+        end)
+        minimizeButton.Text = "-"
+    end
+end)
+
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+configButton.MouseButton1Click:Connect(function()
+    if configFrame.Visible then
+        configFrame.Visible = false
+        configFrame.Position = UDim2.new(0, -200, 0.5, -100)
+    else
+        configFrame.Visible = true
+        configFrame.Position = UDim2.new(0, 100, 0.5, -100)
+    end
+end)
+
+local followingPlayer = nil
+local isBotModeActive = false
+local isInfiniteYield = false
+local commandPrefix = ";"
+
+local function detectAndFollow()
+    local nearestPlayer
+    local shortestDistance = math.huge
+
+    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (player.Character.HumanoidRootPart.Position - otherPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if distance < shortestDistance then
+                shortestDistance = distance
+                nearestPlayer = otherPlayer
+            end
+        end
+    end
+
+    if nearestPlayer and nearestPlayer ~= followingPlayer then
+        if followingPlayer then
+            game.Players:Chat(commandPrefix .. "unfollow " .. followingPlayer.Name)
+        end
+        game.Players:Chat(commandPrefix .. "follow " .. nearestPlayer.Name)
+        followingPlayer = nearestPlayer
+    end
+end
+
+botModeButton.MouseButton1Click:Connect(function()
+    isBotModeActive = not isBotModeActive
+    game.Players:Chat(commandPrefix .. "loopws 29")
+
+    while isBotModeActive do
+        detectAndFollow()
+        wait(0.1)
+    end
+end)
+
+executeAdminButton.MouseButton1Click:Connect(function()
+    if isInfiniteYield then
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+    else
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FilteringEnabled/NamelessAdmin/main/Source"))()
+    end
+end)
+
+infiniteYieldToggle.MouseButton1Click:Connect(function()
+    isInfiniteYield = not isInfiniteYield
+    infiniteYieldToggle.Text = "Infinite yield (alt)" .. (isInfiniteYield and " ✔" or " ✘")
+end)
+
+prefixToggle.MouseButton1Click:Connect(function()
+    commandPrefix = (commandPrefix == ";") and ":" or ";"
+    prefixToggle.Text = "Prefix '" .. commandPrefix .. "'" .. (commandPrefix == ":" and " ✔" or " ✘")
+end)
