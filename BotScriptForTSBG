@@ -11,6 +11,7 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:FindFirstChildOfClass("Humanoid")
+local camera = workspace.CurrentCamera
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = player:WaitForChild("PlayerGui")
@@ -25,6 +26,14 @@ mainFrame.Parent = screenGui
 mainFrame.Draggable = true
 mainFrame.Active = true
 mainFrame.Selectable = true
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Text = "Bot GUI v0.2"
+titleLabel.Size = UDim2.new(1, 0, 0, 25)
+titleLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.BorderSizePixel = 0
+titleLabel.Parent = mainFrame
 
 local function createButton(text, position, size, color)
     local button = Instance.new("TextButton")
@@ -41,8 +50,7 @@ local minimizeButton = createButton("-", UDim2.new(1, -110, 0, 0), UDim2.new(0, 
 local closeButton = createButton("X", UDim2.new(1, -55, 0, 0), UDim2.new(0, 50, 0, 25), Color3.fromRGB(204, 51, 51))
 local botModeButton = createButton("Bot (Execute nameless admin first)", UDim2.new(0.5, -100, 0.5, -75), UDim2.new(0, 200, 0, 50), Color3.fromRGB(153, 153, 153))
 local executeAdminButton = createButton("Execute nameless admin", UDim2.new(0.5, -100, 0.5, 0), UDim2.new(0, 200, 0, 50), Color3.fromRGB(153, 153, 153))
-
-local configButton = createButton("⚙️", UDim2.new(0, 0, 0, 0), UDim2.new(0, 30, 0, 30), Color3.fromRGB(153, 153, 153))
+local configButton = createButton("⚙️", UDim2.new(0, 0, 0, 25), UDim2.new(0, 30, 0, 30), Color3.fromRGB(153, 153, 153))
 
 local configFrame = Instance.new("Frame")
 configFrame.Size = UDim2.new(0, 200, 0, 200)
@@ -66,12 +74,35 @@ end
 local infiniteYieldToggle = createToggle("Infinite yield (alt)", UDim2.new(0, 0, 0, 0), false)
 local prefixToggle = createToggle("Prefix ':'", UDim2.new(0, 0, 0, 50), false)
 
+local updateLogButton = Instance.new("TextButton")
+updateLogButton.Text = "Update log ℹ️"
+updateLogButton.Size = UDim2.new(1, 0, 0, 50)
+updateLogButton.Position = UDim2.new(0, 0, 0, 100)
+updateLogButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+updateLogButton.BorderSizePixel = 0
+updateLogButton.Parent = configFrame
+
+local function displayUpdateLog()
+    local updateLog = Instance.new("TextLabel")
+    updateLog.Text = "Bot GUI v0.2\n- Added camera lock feature\n- GUI improvements\n- Bug fixes"
+    updateLog.Size = UDim2.new(1, 0, 1, 0)
+    updateLog.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    updateLog.TextColor3 = Color3.fromRGB(255, 255, 255)
+    updateLog.TextWrapped = true
+    updateLog.Parent = screenGui
+
+    wait(5)
+    updateLog:Destroy()
+end
+
+updateLogButton.MouseButton1Click:Connect(displayUpdateLog)
+
 local isMinimized = false
 minimizeButton.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     if isMinimized then
         for _, child in ipairs(mainFrame:GetChildren()) do
-            if child ~= minimizeButton then
+            if child ~= minimizeButton and child ~= titleLabel then
                 child.Visible = false
             end
         end
@@ -106,6 +137,15 @@ local isBotModeActive = false
 local isInfiniteYield = false
 local commandPrefix = ";"
 
+local function stopBotMode()
+    isBotModeActive = false
+    if followingPlayer then
+        game.Players:Chat(commandPrefix .. "unfollow " .. followingPlayer.Name)
+        camera.CameraSubject = character:FindFirstChild("Humanoid")
+        followingPlayer = nil
+    end
+end
+
 local function detectAndFollow()
     local nearestPlayer
     local shortestDistance = math.huge
@@ -129,14 +169,43 @@ local function detectAndFollow()
     end
 end
 
+local function updateCamera()
+    if followingPlayer and followingPlayer.Character and followingPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        camera.CFrame = CFrame.new(camera.CFrame.Position, followingPlayer.Character.HumanoidRootPart.Position)
+    end
+end
+
 botModeButton.MouseButton1Click:Connect(function()
     isBotModeActive = not isBotModeActive
-    game.Players:Chat(commandPrefix .. "loopws 29")
+    if isBotModeActive then
+        game.Players:Chat(commandPrefix .. "loopws 29")
+        while isBotModeActive do
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                detectAndFollow()
+                updateCamera()
 
-    while isBotModeActive do
-        detectAndFollow()
-        wait(0.1)
+                if humanoid.Health <= 2 then
+                    stopBotMode()
+                    break
+                end
+            end
+            wait()
+        end
+    else
+        stopBotMode()
     end
+end)
+
+humanoid.Died:Connect(function()
+    stopBotMode()
+end)
+
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoid = character:FindFirstChildOfClass("Humanoid")
+    humanoid.Died:Connect(function()
+        stopBotMode()
+    end)
 end)
 
 executeAdminButton.MouseButton1Click:Connect(function()
