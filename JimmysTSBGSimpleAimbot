@@ -1,0 +1,125 @@
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "Thanks for using :D",
+    Text = "Made by Jimmy Scripts",
+    Duration = 15,
+    Icon = "rbxassetid://18983197158"
+})
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:FindFirstChildOfClass("Humanoid")
+local camera = workspace.CurrentCamera
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 300, 0, 200)
+mainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+mainFrame.BackgroundColor3 = Color3.fromRGB(51, 51, 51)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+mainFrame.Draggable = true
+mainFrame.Active = true
+mainFrame.Selectable = true
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Text = "Jimmy's Aimbot"
+titleLabel.Size = UDim2.new(1, 0, 0, 25)
+titleLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.BorderSizePixel = 0
+titleLabel.Parent = mainFrame
+
+local function createButton(text, position, size, color)
+    local button = Instance.new("TextButton")
+    button.Text = text
+    button.Size = size
+    button.Position = position
+    button.BackgroundColor3 = color
+    button.BorderSizePixel = 0
+    button.Parent = mainFrame
+    return button
+end
+
+local minimizeButton = createButton("-", UDim2.new(1, -110, 0, 0), UDim2.new(0, 50, 0, 25), Color3.fromRGB(204, 204, 204))
+local closeButton = createButton("X", UDim2.new(1, -55, 0, 0), UDim2.new(0, 50, 0, 25), Color3.fromRGB(204, 51, 51))
+local toggleAimbotButton = createButton("Toggle Aimbot", UDim2.new(0.5, -100, 0.5, -25), UDim2.new(0, 200, 0, 50), Color3.fromRGB(153, 153, 153))
+
+local isAimbotActive = false
+
+local function aimlock()
+    local nearestPlayer = nil
+    local shortestDistance = math.huge
+
+    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (player.Character.HumanoidRootPart.Position - otherPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if distance < shortestDistance then
+                shortestDistance = distance
+                nearestPlayer = otherPlayer
+            end
+        end
+    end
+
+    if nearestPlayer and nearestPlayer.Character and nearestPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        camera.CFrame = CFrame.new(camera.CFrame.Position, nearestPlayer.Character.HumanoidRootPart.Position)
+    end
+end
+
+toggleAimbotButton.MouseButton1Click:Connect(function()
+    isAimbotActive = not isAimbotActive
+    toggleAimbotButton.Text = isAimbotActive and "Aimbot: ON" or "Aimbot: OFF"
+
+    if isAimbotActive then
+        while isAimbotActive do
+            if humanoid and humanoid.Health > 0 then
+                aimlock()
+            else
+                isAimbotActive = false
+                toggleAimbotButton.Text = "Aimbot: OFF"
+            end
+            wait()
+        end
+    end
+end)
+
+local isMinimized = false
+minimizeButton.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        for _, child in ipairs(mainFrame:GetChildren()) do
+            if child ~= minimizeButton and child ~= titleLabel then
+                child.Visible = false
+            end
+        end
+        mainFrame:TweenSize(UDim2.new(0, 50, 0, 25), "Out", "Sine", 0.3, true)
+        minimizeButton.Text = "+"
+    else
+        mainFrame:TweenSize(UDim2.new(0, 300, 0, 200), "Out", "Sine", 0.3, true, function()
+            for _, child in ipairs(mainFrame:GetChildren()) do
+                child.Visible = true
+            end
+        end)
+        minimizeButton.Text = "-"
+    end
+end)
+
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+humanoid.Died:Connect(function()
+    isAimbotActive = false
+    toggleAimbotButton.Text = "Aimbot: OFF"
+end)
+
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoid = character:FindFirstChildOfClass("Humanoid")
+    humanoid.Died:Connect(function()
+        isAimbotActive = false
+        toggleAimbotButton.Text = "Aimbot: OFF"
+    end)
+end)
