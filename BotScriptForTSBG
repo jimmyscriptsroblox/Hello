@@ -1,4 +1,4 @@
--- Hello if you're seeing this, i recommend using the loadstring beacuse i am going to update this script, and if you have any problems using this script comment the issue youre issuing in my youtube channel: Jimmy Scripts
+-- Hello if you're seeing this, I recommend using the loadstring because I am going to update this script. If you have any issues using this script, comment the issue you're experiencing on my YouTube channel: Jimmy Scripts
 -- The loadstring you're supposed to use: loadstring(game:HttpGet("https://raw.githubusercontent.com/jimmyscriptsroblox/Hello/main/BotScriptForTSBG",true))()
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
@@ -28,7 +28,7 @@ mainFrame.Active = true
 mainFrame.Selectable = true
 
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Text = "Bot GUI v0.2"
+titleLabel.Text = "Bot GUI v0.21"
 titleLabel.Size = UDim2.new(1, 0, 0, 25)
 titleLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -53,8 +53,8 @@ local executeAdminButton = createButton("Execute nameless admin", UDim2.new(0.5,
 local configButton = createButton("⚙️", UDim2.new(0, 0, 0, 25), UDim2.new(0, 30, 0, 30), Color3.fromRGB(153, 153, 153))
 
 local configFrame = Instance.new("Frame")
-configFrame.Size = UDim2.new(0, 200, 0, 200)
-configFrame.Position = UDim2.new(0, -200, 0.5, -100)
+configFrame.Size = UDim2.new(0, 200, 0, 250)
+configFrame.Position = UDim2.new(0, -200, 0.5, -125)
 configFrame.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
 configFrame.BorderSizePixel = 0
 configFrame.Visible = false
@@ -71,20 +71,21 @@ local function createToggle(text, position, state)
     return toggle
 end
 
-local infiniteYieldToggle = createToggle("Infinite yield (alt)", UDim2.new(0, 0, 0, 0), false)
-local prefixToggle = createToggle("Prefix ':'", UDim2.new(0, 0, 0, 50), false)
+local camlockToggle = createToggle("Camlock", UDim2.new(0, 0, 0, 0), true)
+local infiniteYieldToggle = createToggle("Infinite yield (alt)", UDim2.new(0, 0, 0, 50), false)
+local prefixToggle = createToggle("Prefix ':'", UDim2.new(0, 0, 0, 100), false)
 
 local updateLogButton = Instance.new("TextButton")
 updateLogButton.Text = "Update log ℹ️"
 updateLogButton.Size = UDim2.new(1, 0, 0, 50)
-updateLogButton.Position = UDim2.new(0, 0, 0, 100)
+updateLogButton.Position = UDim2.new(0, 0, 0, 200)
 updateLogButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
 updateLogButton.BorderSizePixel = 0
 updateLogButton.Parent = configFrame
 
 local function displayUpdateLog()
     local updateLog = Instance.new("TextLabel")
-    updateLog.Text = "Bot GUI v0.2\n- Added camera lock feature\n- GUI improvements\n- Bug fixes"
+    updateLog.Text = "Bot GUI v0.21\n Small update\n- Added camlock to nearest as a toggle"
     updateLog.Size = UDim2.new(1, 0, 1, 0)
     updateLog.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
     updateLog.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -125,10 +126,10 @@ end)
 configButton.MouseButton1Click:Connect(function()
     if configFrame.Visible then
         configFrame.Visible = false
-        configFrame.Position = UDim2.new(0, -200, 0.5, -100)
+        configFrame.Position = UDim2.new(0, -200, 0.5, -125)
     else
         configFrame.Visible = true
-        configFrame.Position = UDim2.new(0, 100, 0.5, -100)
+        configFrame.Position = UDim2.new(0, 100, 0.5, -125)
     end
 end)
 
@@ -136,6 +137,7 @@ local followingPlayer = nil
 local isBotModeActive = false
 local isInfiniteYield = false
 local commandPrefix = ";"
+local isCamlockEnabled = true
 
 local function stopBotMode()
     isBotModeActive = false
@@ -171,7 +173,9 @@ end
 
 local function updateCamera()
     if followingPlayer and followingPlayer.Character and followingPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        camera.CFrame = CFrame.new(camera.CFrame.Position, followingPlayer.Character.HumanoidRootPart.Position)
+        if isCamlockEnabled then
+            camera.CFrame = CFrame.new(camera.CFrame.Position, followingPlayer.Character.HumanoidRootPart.Position)
+        end
     end
 end
 
@@ -224,4 +228,9 @@ end)
 prefixToggle.MouseButton1Click:Connect(function()
     commandPrefix = (commandPrefix == ";") and ":" or ";"
     prefixToggle.Text = "Prefix '" .. commandPrefix .. "'" .. (commandPrefix == ":" and " ✔" or " ✘")
+end)
+
+camlockToggle.MouseButton1Click:Connect(function()
+    isCamlockEnabled = not isCamlockEnabled
+    camlockToggle.Text = "Camlock" .. (isCamlockEnabled and " ✔" or " ✘")
 end)
